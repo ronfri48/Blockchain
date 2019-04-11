@@ -1,7 +1,5 @@
-const {
-    Blockchain,
-    Block
-} = require('./blockchain.js')
+const Block = require('./block.js')
+const Blockchain = require('./src/blockchain.js/index.js.js.js')
 
 let ronfCoin = new Blockchain();
 ronfCoin.addBlock(new Block(1, "20/01/2019", {
