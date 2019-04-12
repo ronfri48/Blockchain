@@ -72,6 +72,13 @@ class Blockchain {
         this.pendingTransactions = []; //In reality limit block
     }
 
+    addTransaction(transaction) {
+        new_block.append(trans)
+        if new_block.size() == 4
+        new_block.hash = new_block.generate_merkle().root
+
+    }
+
     createTransaction(transaction) {
         this.pendingTransactions.push(transaction);
     }

@@ -1,0 +1,19 @@
+blockchain = Blockchain(file.json)
+
+trans = blockchain.recv_transaction()
+blockchain.add_transaction(trans)
+
+    => new_block.append(trans)
+        if new_block.size() == 4
+            new_block.hash = new_block.generate_merkle().root
+
+    => chain.append(new_block)
+        new_block = Block()
+
+hash = blockchain.recv_transaction_validation_request()
+blockchain.find_hash(hash)
+
+    => for block in chain:
+            if (block.bloom_filter.contains(hash))
+                svp = block.merkle.get_svp(hash)
+                send_client(svp)

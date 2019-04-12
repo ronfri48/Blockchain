@@ -1,4 +1,7 @@
 const SHA256 = require("crypto-js/sha256");
+const MerkleTree = require('merkletreejs')
+const BloomFilter = require('./bloomfilter.js')
+
 
 class Block {
     constructor(timestamp, transactions, previousHash = '') {
@@ -7,10 +10,31 @@ class Block {
         this.transactions = transactions;
         this.hash = this.calculateHash();
         this.nonce = 0;
+        this.merkle = null;
+        this.bloomFilter = new BloomFilter(4);
+    }
+
+    append(transaction) {
+        this.transactions.push(transaction);
+        self.bloomFilter.add(this.merkleHashFunc(transaction));
+    }
+
+    merkleHashFunc(transaction) {
+        return SHA256(this.previousHash + this.timestamp + JSON.stringify(transaction) + this.nonce).toString();
     }
 
     calculateHash() {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
+        this.generateMerkle();
+        return this.merkle.getRoot().toString('hex');
+    }
+
+    generateMerkle() {
+        const leaves = self.transaction.map(transaction => merkleHashFunc(transaction));
+        self.merkle = new MerkleTree(leaves, merkleHashFunc)
+    }
+
+    size() {
+        return self.transactions.length;
     }
 
     mineBlock(difficulty) {

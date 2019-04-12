@@ -1,4 +1,5 @@
-const Block = require('../src/block.js')
+const consts = require('./consts.js')
+const Block = require('./block.js')
 const Transaction = require('./transaction.js/index.js')
 const Fs = require('fs')
 
@@ -9,10 +10,7 @@ class Blockchain {
     constructor() {
         this.chain = [this.createGenesisBlock()];
         this.difficulty = 5;
-
-        this.pendingTransactions = []; // Transacions poll that have to be collected into the block
-        this.miningReward = 100;
-
+        this.currentBlock;
     }
 
     loadFromJson(jsonPath) {
@@ -32,30 +30,31 @@ class Blockchain {
         return this.chain[this.chain.length - 1];
     }
 
+    addTransaction(transaction) {
+        this.currentBlock.append(transaction)
+        if (consts.TRANSACTIONS_IN_BLOCK === this.currentBlock.size()) {
+            this.currentBlock.calculateHash();
+            this.addBlock(this.currentBlock);
+            this.currentBlock = new Block();
+        }
+    }
+
+    findHash(transactionHash) {
+        chain.forEach(block => {
+            if (block.bloomFilter.exists(transactionHash)) {
+                const root = tree.getRoot().toString('hex')
+                return block.merkle.verify(block.merkle.getProof(transactionHash), transactionHash, root);
+            }
+        });
+
+        throw "Transaction not found, hash: " + transactionHash;
+    }
+
     addBlock(newBlock) {
         newBlock.previousHash = this.getLatestBlock().hash;
-        //newBlock.hash = newBlock.calculateHash();
         newBlock.mineBlock(this.difficulty);
         this.chain.push(newBlock);
     }
-
-    minePendingTransactions(miningRewardAddress) {
-        // Transacion from nowhere to my address
-        const rewardTx = new Transaction(null, miningRewardAddress, this.miningReward);
-        this.pendingTransactions.push(rewardTx);
-
-        let block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
-        block.mineBlock(this.difficulty);
-
-        console.log('Block successfully mined!');
-        this.chain.push(block);
-        this.pendingTransactions = []; //In reality limit block
-    }
-
-    createTransaction(transaction) {
-        this.pendingTransactions.push(transaction);
-    }
-
 
     isChainValid() {
         for (let i = 1; i < this.chain.length; i++) {
