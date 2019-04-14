@@ -1,11 +1,13 @@
-const consts = require('./consts.js')
+const Consts = require('./consts.js')
 const topology = require('fully-connected-topology')
 const Blockchain = require('./blockchain.js')
-const Transaction = require('./blockchain.js')
+const Transaction = require('./transaction.js')
 const {
     StatedSocket,
     SocketStates
 } = require('./stated_socket.js')
+
+const consts = new Consts();
 const {
     stdin,
     exit,
@@ -21,7 +23,7 @@ const {
 
 
 const sockets = {}
-var blockchain = Blockchain();
+var blockchain = new Blockchain();
 blockchain.loadFromJson(argv[2]);
 
 log('---------------------')
@@ -85,7 +87,10 @@ function writeToClient(receiverPeer, message) {
 }
 
 function handleUserChoice(message) {
-    const receiverPeer, receiverPeerMessage = extractPeerAndMessage(message)
+    const {
+        receiverPeer,
+        receiverPeerMessage
+    } = extractPeerAndMessage(message)
     var peerSocket = sockets[parseInt(receiverPeer)];
     switch (receiverPeerMessage) {
         case consts.NEW_TRANSACTION_CHOICE:
@@ -148,7 +153,13 @@ function extractPeerAndMessage(message) {
 }
 
 function extractTransactionFromMessage(message) {
-    const fromAddress, otherData = message.slice(consts.ADDRESSES_SEPARATOR);
-    const toAddress, amount = otherData.clice(consts.AMOUNT_SEPARATOR);
+    const {
+        fromAddress,
+        otherData
+    } = message.slice(consts.ADDRESSES_SEPARATOR);
+    const {
+        toAddress,
+        amount
+    } = otherData.clice(consts.AMOUNT_SEPARATOR);
     return fromAddress, toAddress, parseFloat(amount);
 }

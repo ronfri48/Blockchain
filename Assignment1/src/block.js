@@ -16,7 +16,7 @@ class Block {
 
     append(transaction) {
         this.transactions.push(transaction);
-        self.bloomFilter.add(this.merkleHashFunc(transaction));
+        this.bloomFilter.add(this.merkleHashFunc(transaction));
     }
 
     merkleHashFunc(transaction) {
@@ -29,12 +29,12 @@ class Block {
     }
 
     generateMerkle() {
-        const leaves = self.transaction.map(transaction => merkleHashFunc(transaction));
-        self.merkle = new MerkleTree(leaves, merkleHashFunc)
+        const leaves = new Array(this.transactions).map(transaction => this.merkleHashFunc(transaction));
+        this.merkle = new MerkleTree(leaves, this.merkleHashFunc)
     }
 
     size() {
-        return self.transactions.length;
+        return this.transactions.length;
     }
 
     mineBlock(difficulty) {
@@ -47,4 +47,4 @@ class Block {
     }
 }
 
-module.exports.Block = Block;
+module.exports = Block;

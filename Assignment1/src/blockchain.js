@@ -1,14 +1,15 @@
-const consts = require('./consts.js')
+const Consts = require('./consts.js')
 const Block = require('./block.js')
-const Transaction = require('./transaction.js/index.js')
+const Transaction = require('./transaction.js')
 const Fs = require('fs')
 
-const InitialBlocksKey = "blocks"
+const InitialBlocksKey = "blocks";
+const consts = new Consts();
 
 class Blockchain {
 
     constructor() {
-        this.chain = [this.createGenesisBlock()];
+        this.chain = [];
         this.difficulty = 5;
         this.currentBlock;
     }
@@ -20,10 +21,6 @@ class Blockchain {
         jsonData[InitialBlocksKey].forEach(element => {
             this.addBlock(jsonData)
         });
-    }
-
-    createGenesisBlock() {
-        return new Block("01/01/2019", "Genesis block", "0");
     }
 
     getLatestBlock() {
@@ -92,4 +89,4 @@ class Blockchain {
     }
 }
 
-module.exports.Blockchain = Blockchain;
+module.exports = Blockchain;

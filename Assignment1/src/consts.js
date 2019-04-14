@@ -11,4 +11,4 @@ class Consts {
     }
 }
 
-module.exports.consts = Consts()
+module.exports = Consts;

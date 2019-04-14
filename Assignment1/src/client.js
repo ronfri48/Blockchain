@@ -1,7 +1,4 @@
-const consts = require('./consts.js')
 const topology = require('fully-connected-topology')
-const Blockchain = require('./blockchain.js')
-const Transaction = require('./blockchain.js')
 const {
     StatedSocket,
     SocketStates
@@ -21,8 +18,6 @@ const {
 
 
 const sockets = {}
-var blockchain = Blockchain();
-blockchain.loadFromJson(argv[2]);
 
 log('---------------------')
 log('Welcome to p2p blockchain network!, Im  a client.')

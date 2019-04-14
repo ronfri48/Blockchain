@@ -7,4 +7,4 @@ class Transaction {
     }
 }
 
-module.exports.Transaction = Transaction
+module.exports = Transaction
