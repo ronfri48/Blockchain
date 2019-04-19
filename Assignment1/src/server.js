@@ -4,10 +4,11 @@ const Blockchain = require('./blockchain.js')
 const Transaction = require('./transaction.js')
 const {
     StatedSocket,
-    SocketStates
+    States
 } = require('./stated_socket.js')
 
 const consts = new Consts();
+const socketStates = new States().states;
 const {
     stdin,
     exit,
@@ -23,8 +24,7 @@ const {
 
 
 const sockets = {}
-var blockchain = new Blockchain();
-blockchain.loadFromJson(argv[2]);
+var blockchain = new Blockchain(argv[2]);
 
 log('---------------------')
 log('Welcome to p2p blockchain network!, Im the best server in the world.')
@@ -39,16 +39,16 @@ const peerIps = getPeerIps(peers)
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     const peerPort = extractPortFromIp(peerIp)
     log(peerPort, ' connected to me')
-    sockets[parseInt(peerPort)] = StatedSocket(socket)
+    sockets[peerPort] = new StatedSocket(socket)
 
     try {
-        writeToClient(parseInt(peerPort), consts.MAIN_MESSAGE)
+        writeToClient(parseInt(peerPort), consts.MAIN_MESSAGE.toString().trim())
     } catch {
-        writeBroadcastMessage(socket, consts.MAIN_MESSAGE);
+        writeBroadcastMessage(socket, consts.MAIN_MESSAGE.toString().trim());
     }
 
     stdin.on('data', data => { //on user input
-        const message = data.toString().trim()
+        const message = data.toString().trim();
 
         if (message === 'exit') { //on exit
             log('Bye bye')
@@ -56,13 +56,13 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         }
 
         log('User data is: ', data.toString('utf8'));
-        handleUserChoice(data);
+        handleUserChoice(message);
     })
 
     //print data when received
     socket.on('data', data => {
-        log('User data is: ', data.toString('utf8'));
-        handleUserChoice(data);
+        log('Sent data is: ', data.toString('utf8'));
+        handleUserChoice(data.toString().trim());
     })
 })
 
@@ -80,6 +80,7 @@ function writeBroadcastMessage(socket, message) {
 
 function writeToClient(receiverPeer, message) {
     if (sockets[receiverPeer].socket) { //message to specific peer
+        message = message.toString().trim();
         sockets[receiverPeer].socket.write(formatMessage(message))
     } else {
         throw "Can not send to " + receiverPeer;
@@ -87,35 +88,37 @@ function writeToClient(receiverPeer, message) {
 }
 
 function handleUserChoice(message) {
-    const {
+    const [
         receiverPeer,
         receiverPeerMessage
-    } = extractPeerAndMessage(message)
-    var peerSocket = sockets[parseInt(receiverPeer)];
+    ] = extractPeerAndMessage(message)
+
+    var peerSocket = sockets[receiverPeer];
+
     switch (receiverPeerMessage) {
         case consts.NEW_TRANSACTION_CHOICE:
             writeToClient(receiverPeer, consts.INSERT_TRANSACTION_DATA_MESSAGE);
-            peerSocket.moveToNewState(SocketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA);
+            peerSocket.moveToNewState(socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA);
             break;
         case consts.VALIDATE_TRANSACTION_CHOICE:
             writeToClient(receiverPeer, consts.VALIDATE_TRANSACTION_DATA_MESSAGE);
-            peerSocket.moveToNewState(SocketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA);
+            peerSocket.moveToNewState(socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA);
             break;
         default:
             handleUserData(receiverPeer, receiverPeerMessage);
             writeToClient(receiverPeer, consts.MAIN_MESSAGE);
-            sockets[parseInt(receiverPeer)].resetState();
+            sockets[receiverPeer].resetState();
     }
 }
 
 function handleUserData(receiverPeer, message) {
-    const peerSocket = sockets[parseInt(receiverPeer)];
+    const peerSocket = sockets[receiverPeer];
     switch (peerSocket.state) {
-        case SocketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
+        case socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
             blockchain.createTransaction(new Transaction(extractTransactionFromMessage(message)));
             peerSocket.socket.write("Added Transaction Successfully");
             break;
-        case SocketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
+        case socketStatesWAITING_FOR_TRANSACTION_VALIDATION_DATA:
             peerSocket.socket.write("Is transaction : " + message + " valid: " + blockchain.findHash(message));
             break;
         default:
@@ -149,7 +152,10 @@ function extractMessageToSpecificPeer(message) {
 }
 
 function extractPeerAndMessage(message) {
-    return extractReceiverPeer(message), extractMessageToSpecificPeer(message);
+    return [
+        extractReceiverPeer(message),
+        extractMessageToSpecificPeer(message)
+    ];
 }
 
 function extractTransactionFromMessage(message) {
@@ -160,6 +166,10 @@ function extractTransactionFromMessage(message) {
     const {
         toAddress,
         amount
-    } = otherData.clice(consts.AMOUNT_SEPARATOR);
-    return fromAddress, toAddress, parseFloat(amount);
+    } = otherData.slice(consts.AMOUNT_SEPARATOR);
+    return {
+        "fromAddress": fromAddress,
+        "toAddress": toAddress,
+        "amount": parseFloat(amount)
+    };
 }

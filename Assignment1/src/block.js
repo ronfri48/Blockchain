@@ -1,4 +1,4 @@
-const SHA256 = require("crypto-js/sha256");
+const SHA256 = require("crypto-js/sha256")
 const MerkleTree = require('merkletreejs')
 const BloomFilter = require('./bloomfilter.js')
 
@@ -30,7 +30,7 @@ class Block {
 
     generateMerkle() {
         const leaves = new Array(this.transactions).map(transaction => this.merkleHashFunc(transaction));
-        this.merkle = new MerkleTree(leaves, this.merkleHashFunc)
+        this.merkle = new MerkleTree.MerkleTree(leaves, this.merkleHashFunc)
     }
 
     size() {

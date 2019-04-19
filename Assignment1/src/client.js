@@ -32,7 +32,7 @@ const peerIps = getPeerIps(peers)
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     const peerPort = extractPortFromIp(peerIp)
     log(peerPort, ' connected to me')
-    sockets[parseInt(peerPort)] = StatedSocket(socket)
+    sockets[peerPort] = new StatedSocket(socket)
 
     stdin.on('data', data => { //on user input
         const message = data.toString().trim()
@@ -42,12 +42,13 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
             exit(0)
         }
 
-        sockets[parseInt(peerPort)].socket.write(formatMessage(data));
+        sockets[peerPort].socket.write(formatMessage(message));
     })
 
     //print data when received
     socket.on('data', data => {
-        log(data);
+        message = data.toString().trim()
+        log(message);
     })
 })
 

@@ -4,6 +4,12 @@ const states = {
     WAITING_FOR_TRANSACTION_VALIDATION_DATA: "WAITING_FOR_TRANSACTION_VALIDATION_DATA"
 }
 
+class States {
+    constructor() {
+        this.states = states;
+    }
+}
+
 class StatedSocket {
     constructor(socket) {
         this.socket = socket;
@@ -40,4 +46,4 @@ class StatedSocket {
 }
 
 module.exports.StatedSocket = StatedSocket
-module.exports.States = states
+module.exports.States = States

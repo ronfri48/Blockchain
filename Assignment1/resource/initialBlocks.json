@@ -1,7 +1,15 @@
 {
-    "blocks": [{},
-        {},
-        {},
-        {}
-    ]
+    "blocks": [{
+        "timestamp": "19-04-2019-17:45:00",
+        "transactions": [{
+            "fromAddress": "sdsads",
+            "toAddress": "sssssss",
+            "amount": 100
+        }, {
+            "fromAddress": "sssssss",
+            "toAddress": "sdsads",
+            "amount": 50
+        }],
+        "previousHash": "000000000000000"
+    }]
 }

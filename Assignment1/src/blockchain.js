@@ -8,10 +8,11 @@ const consts = new Consts();
 
 class Blockchain {
 
-    constructor() {
+    constructor(jsonPath) {
         this.chain = [];
+        this.loadFromJson(jsonPath);
         this.difficulty = 5;
-        this.currentBlock;
+        this.currentBlock = new Block();
     }
 
     loadFromJson(jsonPath) {
@@ -19,8 +20,18 @@ class Blockchain {
         var jsonData = JSON.parse(data);
 
         jsonData[InitialBlocksKey].forEach(element => {
-            this.addBlock(jsonData)
+            this.chain.push(this.makeBlockObject(element));
         });
+    }
+
+    makeBlockObject(blockAsJson) {
+        var transactions = Array();
+
+        blockAsJson["transactions"].forEach(transaction => {
+            transactions.push(new Transaction(transaction))
+        });
+
+        return new Block(blockAsJson["timestamp"], transactions, blockAsJson["previousHash"]);
     }
 
     getLatestBlock() {
