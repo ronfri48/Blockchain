@@ -50,19 +50,19 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     stdin.on('data', data => { //on user input
         const message = data.toString().trim();
 
-        if (message === 'exit') { //on exit
+        if ('exit' === message) { //on exit
             log('Bye bye')
             exit(0)
         }
 
-        log('User data is: ', data.toString('utf8'));
+        log('User data is: ', message.toString('utf8'));
         handleUserChoice(message);
     })
 
-    //print data when received
     socket.on('data', data => {
-        log('Sent data is: ', data.toString('utf8'));
-        handleUserChoice(data.toString().trim());
+        const receivedMessage = data.toString().trim();
+        log('Sent data is: ', receivedMessage.toString('utf8'));
+        handleUserChoice(receivedMessage);
     })
 })
 
@@ -115,10 +115,12 @@ function handleUserData(receiverPeer, message) {
     const peerSocket = sockets[receiverPeer];
     switch (peerSocket.state) {
         case socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
-            blockchain.createTransaction(new Transaction(extractTransactionFromMessage(message)));
+            const extractedMessage = extractTransactionFromMessage(message);
+            const transaction = new Transaction(extractedMessage[0], extractedMessage[1], extractedMessage[2]);
+            blockchain.addTransaction(transaction);
             peerSocket.socket.write("Added Transaction Successfully");
             break;
-        case socketStatesWAITING_FOR_TRANSACTION_VALIDATION_DATA:
+        case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
             peerSocket.socket.write("Is transaction : " + message + " valid: " + blockchain.findHash(message));
             break;
         default:
@@ -159,17 +161,14 @@ function extractPeerAndMessage(message) {
 }
 
 function extractTransactionFromMessage(message) {
-    const {
+    const [
         fromAddress,
         otherData
-    } = message.slice(consts.ADDRESSES_SEPARATOR);
-    const {
+    ] = message.split(consts.ADDRESSES_SEPARATOR);
+
+    const [
         toAddress,
         amount
-    } = otherData.slice(consts.AMOUNT_SEPARATOR);
-    return {
-        "fromAddress": fromAddress,
-        "toAddress": toAddress,
-        "amount": parseFloat(amount)
-    };
+    ] = otherData.split(consts.AMOUNT_SEPARATOR);
+    return [fromAddress, toAddress, parseFloat(amount)];
 }

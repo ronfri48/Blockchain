@@ -12,7 +12,7 @@ class Blockchain {
         this.chain = [];
         this.loadFromJson(jsonPath);
         this.difficulty = 5;
-        this.currentBlock = new Block();
+        this.currentBlock = new Block(Date.now(), new Array());
     }
 
     loadFromJson(jsonPath) {
@@ -43,12 +43,12 @@ class Blockchain {
         if (consts.TRANSACTIONS_IN_BLOCK === this.currentBlock.size()) {
             this.currentBlock.calculateHash();
             this.addBlock(this.currentBlock);
-            this.currentBlock = new Block();
+            this.currentBlock = new Block(Date.now(), new Array());
         }
     }
 
     findHash(transactionHash) {
-        chain.forEach(block => {
+        this.chain.forEach(block => {
             if (block.bloomFilter.exists(transactionHash)) {
                 const root = tree.getRoot().toString('hex')
                 return block.merkle.verify(block.merkle.getProof(transactionHash), transactionHash, root);
