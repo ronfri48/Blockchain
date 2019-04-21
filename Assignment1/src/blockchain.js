@@ -28,7 +28,10 @@ class Blockchain {
         var transactions = Array();
 
         blockAsJson["transactions"].forEach(transaction => {
-            transactions.push(new Transaction(transaction))
+            transactions.push(new Transaction(
+                transaction["fromAddress"],
+                transaction["toAddress"],
+                transaction["amount"]));
         });
 
         return new Block(blockAsJson["timestamp"], transactions, blockAsJson["previousHash"]);
@@ -49,13 +52,15 @@ class Blockchain {
 
     findHash(transactionHash) {
         this.chain.forEach(block => {
+            console.log(block);
             if (block.bloomFilter.exists(transactionHash)) {
                 const root = tree.getRoot().toString('hex')
                 return block.merkle.verify(block.merkle.getProof(transactionHash), transactionHash, root);
             }
         });
 
-        throw "Transaction not found, hash: " + transactionHash;
+        console.log("Transaction not found, hash: " + transactionHash);
+        return false;
     }
 
     addBlock(newBlock) {

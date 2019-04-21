@@ -121,7 +121,7 @@ function handleUserData(receiverPeer, message) {
             peerSocket.socket.write("Added Transaction Successfully");
             break;
         case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
-            peerSocket.socket.write("Is transaction : " + message + " valid: " + blockchain.findHash(message));
+            peerSocket.socket.write("Is transaction : " + message + " valid: " + blockchain.findHash(message.toString().trim()));
             break;
         default:
             peerSocket.socket.write("Error, invalid state ! ");

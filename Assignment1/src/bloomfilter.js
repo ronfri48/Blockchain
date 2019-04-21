@@ -10,7 +10,7 @@ class BloomFilter {
     }
 
     /**
-     * Add new hashed member to the storage
+     * Add new hashed member to the data
      * @param {string} memberToAdd - The new string to add
      */
     add(memberToAdd) {
@@ -42,8 +42,8 @@ class BloomFilter {
      * @param {int} index - The index to mark.
      */
     _isOccupied(index) {
-        // If storage[index] = 1 -> the index is occupied
-        return !!this.storage[index];
+        // If data[index] = 1 -> the index is occupied
+        return !!this.data[index];
     }
 
     /**
