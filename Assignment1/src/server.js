@@ -6,6 +6,7 @@ const {
     StatedSocket,
     States
 } = require('./stated_socket.js')
+const ConsoleSocket = require('./console_socket.js')
 
 const consts = new Consts();
 const socketStates = new States().states;
@@ -35,6 +36,9 @@ log('connecting to peers...')
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
 
+sockets[me] = new StatedSocket(new ConsoleSocket());
+writeToClient(me, consts.MAIN_MESSAGE.toString().trim());
+
 //connect to peers
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     const peerPort = extractPortFromIp(peerIp)
@@ -42,7 +46,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     sockets[peerPort] = new StatedSocket(socket)
 
     try {
-        writeToClient(parseInt(peerPort), consts.MAIN_MESSAGE.toString().trim())
+        writeToClient(peerPort, consts.MAIN_MESSAGE.toString().trim())
     } catch {
         writeBroadcastMessage(socket, consts.MAIN_MESSAGE.toString().trim());
     }
@@ -56,13 +60,13 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         }
 
         log('User data is: ', message.toString('utf8'));
-        handleUserChoice(message);
+        handleUserChoice(message, true);
     })
 
     socket.on('data', data => {
         const receivedMessage = data.toString().trim();
         log('Sent data is: ', receivedMessage.toString('utf8'));
-        handleUserChoice(receivedMessage);
+        handleUserChoice(receivedMessage, false);
     })
 })
 
@@ -87,11 +91,16 @@ function writeToClient(receiverPeer, message) {
     }
 }
 
-function handleUserChoice(message) {
-    const [
+function handleUserChoice(message, isSelf) {
+    var [
         receiverPeer,
         receiverPeerMessage
     ] = extractPeerAndMessage(message)
+
+    if (isSelf) {
+        receiverPeerMessage = receiverPeer;
+        receiverPeer = me;
+    }
 
     var peerSocket = sockets[receiverPeer];
 
@@ -99,29 +108,37 @@ function handleUserChoice(message) {
         case consts.NEW_TRANSACTION_CHOICE:
             writeToClient(receiverPeer, consts.INSERT_TRANSACTION_DATA_MESSAGE);
             peerSocket.moveToNewState(socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA);
-            break;
+            return;
         case consts.VALIDATE_TRANSACTION_CHOICE:
             writeToClient(receiverPeer, consts.VALIDATE_TRANSACTION_DATA_MESSAGE);
             peerSocket.moveToNewState(socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA);
+            return;
+        case consts.GET_MY_ACCOUNT:
+            writeToClient(receiverPeer, blockchain.getBalanceOfAddress(receiverPeer.toString().trim()));
+            break;
+        case "4":
+            blockchain.dumpToJson("blockchain.json");
             break;
         default:
             handleUserData(receiverPeer, receiverPeerMessage);
-            writeToClient(receiverPeer, consts.MAIN_MESSAGE);
-            sockets[receiverPeer].resetState();
     }
+
+    writeToClient(receiverPeer, consts.MAIN_MESSAGE);
+    sockets[receiverPeer].resetState();
 }
 
 function handleUserData(receiverPeer, message) {
     const peerSocket = sockets[receiverPeer];
     switch (peerSocket.state) {
         case socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
-            const extractedMessage = extractTransactionFromMessage(message);
-            const transaction = new Transaction(extractedMessage[0], extractedMessage[1], extractedMessage[2]);
+            const [toAddress, amount] = extractTransactionFromMessage(message);
+            const transaction = new Transaction(receiverPeer, toAddress, amount);
             blockchain.addTransaction(transaction);
             peerSocket.socket.write("Added Transaction Successfully");
             break;
         case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
-            peerSocket.socket.write("Is transaction : " + message + " valid: " + blockchain.findHash(message.toString().trim()));
+            const [isValid, svp] = blockchain.findHash(message.toString().trim());
+            peerSocket.socket.write("Is transaction : " + message + " valid: " + isValid + ", svp: " + svp);
             break;
         default:
             peerSocket.socket.write("Error, invalid state ! ");
@@ -162,13 +179,8 @@ function extractPeerAndMessage(message) {
 
 function extractTransactionFromMessage(message) {
     const [
-        fromAddress,
-        otherData
-    ] = message.split(consts.ADDRESSES_SEPARATOR);
-
-    const [
         toAddress,
         amount
-    ] = otherData.split(consts.AMOUNT_SEPARATOR);
-    return [fromAddress, toAddress, parseFloat(amount)];
+    ] = message.split(consts.AMOUNT_SEPARATOR);
+    return [toAddress, parseFloat(amount)];
 }

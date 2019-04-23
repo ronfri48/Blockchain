@@ -24,6 +24,10 @@ class Blockchain {
         });
     }
 
+    dumpToJson(jsonPath) {
+        Fs.writeFileSync(jsonPath, "{blocks:" + this.chain + "}");
+    }
+
     makeBlockObject(blockAsJson) {
         var transactions = Array();
 
@@ -52,15 +56,16 @@ class Blockchain {
 
     findHash(transactionHash) {
         this.chain.forEach(block => {
-            console.log(block);
             if (block.bloomFilter.exists(transactionHash)) {
-                const root = tree.getRoot().toString('hex')
-                return block.merkle.verify(block.merkle.getProof(transactionHash), transactionHash, root);
+                const transactionHashBuf = Buffer.from(bStr, 'utf-8');
+                const root = block.merkle.getRoot().toString('hex');
+                const proof = block.merkle.getProof(transactionHashBuf);
+                return [block.merkle.verify(proof, transactionHashBuf, root), proof];
             }
         });
 
         console.log("Transaction not found, hash: " + transactionHash);
-        return false;
+        return [false, NaN];
     }
 
     addBlock(newBlock) {
