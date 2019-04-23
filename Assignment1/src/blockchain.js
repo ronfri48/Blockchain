@@ -57,7 +57,7 @@ class Blockchain {
     findHash(transactionHash) {
         this.chain.forEach(block => {
             if (block.bloomFilter.exists(transactionHash)) {
-                const transactionHashBuf = Buffer.from(bStr, 'utf-8');
+                const transactionHashBuf = Buffer.from(transactionHash, 'utf-8');
                 const root = block.merkle.getRoot().toString('hex');
                 const proof = block.merkle.getProof(transactionHashBuf);
                 return [block.merkle.verify(proof, transactionHashBuf, root), proof];
