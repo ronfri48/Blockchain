@@ -5,6 +5,11 @@ class Transaction {
         this.toAddress = toAddress;
         this.amount = amount;
     }
+
+    toJson() {
+        return "{\"fromAddress\": " + this.fromAddress +
+            ", \"toAddress\": " + this.toAddress + ", \"amount\": " + this.amount + "}";
+    }
 }
 
 module.exports = Transaction

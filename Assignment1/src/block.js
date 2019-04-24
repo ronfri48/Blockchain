@@ -14,6 +14,18 @@ class Block {
         this.bloomFilter = new BloomFilter(4);
     }
 
+    toJson() {
+        var blockJson = "\"timestamp\": " + this.timestamp + ", \"transactions\": [";
+
+        new Array(this.transactions).forEach(transaction => {
+            blockJson += transaction.toJson();
+        });
+
+        blockJson += "], \"previousHash\": " + this.previousHash + "}";
+
+        return blockJson;
+    }
+
     append(transaction) {
         this.transactions.push(transaction);
         this.bloomFilter.add(this.merkleHashFunc(transaction));
@@ -29,7 +41,7 @@ class Block {
     }
 
     generateMerkle() {
-        const leaves = new Array(this.transactions).map(transaction => this.merkleHashFunc(transaction));
+        const leaves = new Array(this.transactions).map(transaction => this.merkleHashFunc(transaction.toString()));
         this.merkle = new MerkleTree.MerkleTree(leaves, this.merkleHashFunc)
     }
 

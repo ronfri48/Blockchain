@@ -25,7 +25,14 @@ class Blockchain {
     }
 
     dumpToJson(jsonPath) {
-        Fs.writeFileSync(jsonPath, "{blocks:" + this.chain + "}");
+        var jsonStr = "{\"blocks\": [";
+        this.chain.forEach(block => {
+            jsonStr += block.toJson();
+            jsonStr += ", "
+        });
+
+        jsonStr += "]}"
+        Fs.writeFileSync(jsonPath, jsonStr);
     }
 
     makeBlockObject(blockAsJson) {
@@ -57,10 +64,9 @@ class Blockchain {
     findHash(transactionHash) {
         this.chain.forEach(block => {
             if (block.bloomFilter.exists(transactionHash)) {
-                const transactionHashBuf = Buffer.from(transactionHash, 'utf-8');
                 const root = block.merkle.getRoot().toString('hex');
-                const proof = block.merkle.getProof(transactionHashBuf);
-                return [block.merkle.verify(proof, transactionHashBuf, root), proof];
+                const proof = block.merkle.getProof(transactionHash);
+                return [block.merkle.verify(proof, transactionHash, root), proof];
             }
         });
 
