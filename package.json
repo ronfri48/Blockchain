@@ -1,0 +1,33 @@
+{
+  "name": "Blockchain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronfri48/Blockchain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ronfri48/Blockchain/issues"
+  },
+  "homepage": "https://github.com/ronfri48/Blockchain#readme",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1",
+    "fully-connected-topology": "^1.1.1",
+    "merkletreejs": "0.0.25",
+    "buffer-reverse": "1.0.1",
+    "is-buffer": "2.0.3",
+    "length-prefixed-message": "3.0.3",
+    "network-address": "0.0.4",
+    "once": "1.4.0",
+    "treeify": "1.1.0",
+    "varint": "3.0.1",
+    "wrappy": "1.0.2"
+  }
+}

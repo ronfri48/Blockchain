@@ -11,7 +11,7 @@ class Blockchain {
     constructor(jsonPath) {
         this.chain = [];
         this.loadFromJson(jsonPath);
-        this.difficulty = 5;
+        this.difficulty = consts.DIFFICULTY;
         this.currentBlock = new Block(Date.now(), new Array());
     }
 
