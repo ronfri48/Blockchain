@@ -8,6 +8,7 @@ class Consts {
         this.VALIDATE_TRANSACTION_DATA_MESSAGE = "Insert the hash to validate"
         this.AMOUNT_SEPARATOR = ': ';
         this.TRANSACTIONS_IN_BLOCK = 4;
+        this.DIFFICULTY = 2;
     }
 }
 
