@@ -25,10 +25,15 @@ class Blockchain {
     }
 
     dumpToJson(jsonPath) {
-        var jsonStr = "{\"blocks\": [";
+        var jsonStr = "";
+
         this.chain.forEach(block => {
+            if ("" === jsonStr) {
+                jsonStr += "{\"blocks\": [";
+            } else {
+                jsonStr += ", ";
+            }
             jsonStr += block.toJson();
-            jsonStr += ", "
         });
 
         jsonStr += "]}"
@@ -42,10 +47,12 @@ class Blockchain {
             transactions.push(new Transaction(
                 transaction["fromAddress"],
                 transaction["toAddress"],
-                transaction["amount"]));
+                parseInt(transaction["amount"])));
         });
 
-        return new Block(blockAsJson["timestamp"], transactions, blockAsJson["previousHash"]);
+        var block = new Block(blockAsJson["timestamp"], transactions, blockAsJson["previousHash"]);
+
+        return block;
     }
 
     getLatestBlock() {
@@ -53,19 +60,24 @@ class Blockchain {
     }
 
     addTransaction(transaction) {
+        var response = "Transaction added successfully, hash: " + this.currentBlock.merkleHashFunc(transaction) + "\n";
         this.currentBlock.append(transaction)
         if (consts.TRANSACTIONS_IN_BLOCK === this.currentBlock.size()) {
             this.currentBlock.calculateHash();
-            this.addBlock(this.currentBlock);
+            const hash = this.addBlock(this.currentBlock);
+            response += " Transaction's block was mined, and the hash is: ";
+            response += hash;
             this.currentBlock = new Block(Date.now(), new Array());
         }
+
+        return response;
     }
 
     findHash(transactionHash) {
         this.chain.forEach(block => {
             if (block.bloomFilter.exists(transactionHash)) {
-                const root = block.merkle.getRoot().toString('hex');
-                const proof = block.merkle.getProof(transactionHash);
+                const root = block.merkle.getRoot();
+                const proof = block.merkle.getProof(Buffer.from(transactionHash));
                 return [block.merkle.verify(proof, transactionHash, root), proof];
             }
         });
@@ -75,9 +87,17 @@ class Blockchain {
     }
 
     addBlock(newBlock) {
-        newBlock.previousHash = this.getLatestBlock().hash;
+        const lastestBlock = this.getLatestBlock();
+        if (lastestBlock) {
+            newBlock.previousHash = lastestBlock.hash;
+        } else {
+            newBlock.previousHash = "0000000000000000000000000000000000000000000000000000000000000000";
+        }
+
         newBlock.mineBlock(this.difficulty);
         this.chain.push(newBlock);
+
+        return newBlock.hash;
     }
 
     isChainValid() {
@@ -102,11 +122,11 @@ class Blockchain {
 
         for (const block of this.chain) {
             for (const trans of block.transactions) {
-                if (trans.fromAddress === address) {
+                if (trans.fromAddress.toString() === address.toString()) {
                     balance -= trans.amount;
                 }
 
-                if (trans.toAddress === address) {
+                if (trans.toAddress.toString() === address.toString()) {
                     balance += trans.amount;
                 }
             }

@@ -1,6 +1,7 @@
 const SHA256 = require("crypto-js/sha256")
 const MerkleTree = require('merkletreejs')
 const BloomFilter = require('./bloomfilter.js')
+const Transaction = require('./transaction.js')
 
 
 class Block {
@@ -10,18 +11,27 @@ class Block {
         this.transactions = transactions;
         this.hash = this.calculateHash();
         this.nonce = 0;
-        this.merkle = null;
         this.bloomFilter = new BloomFilter(4);
+
+        transactions.forEach(transaction => {
+            this.bloomFilter.add(this.merkleHashFunc(transaction));
+        });
     }
 
     toJson() {
-        var blockJson = "\"timestamp\": " + this.timestamp + ", \"transactions\": [";
+        var blockJson = "";
 
-        new Array(this.transactions).forEach(transaction => {
+        this.transactions.forEach(transaction => {
+            if ("" === blockJson) {
+                blockJson += "{\"timestamp\": " + this.timestamp + ", \"transactions\": [";
+            } else {
+                blockJson += ", "
+            }
+
             blockJson += transaction.toJson();
         });
 
-        blockJson += "], \"previousHash\": " + this.previousHash + "}";
+        blockJson += "], \"previousHash\": \"" + this.previousHash + "\"}";
 
         return blockJson;
     }
@@ -32,7 +42,7 @@ class Block {
     }
 
     merkleHashFunc(transaction) {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(transaction) + this.nonce).toString();
+        return SHA256(JSON.stringify(transaction)).toString();
     }
 
     calculateHash() {
@@ -41,7 +51,7 @@ class Block {
     }
 
     generateMerkle() {
-        const leaves = new Array(this.transactions).map(transaction => this.merkleHashFunc(transaction.toString()));
+        const leaves = this.transactions.map(transaction => this.merkleHashFunc(transaction));
         this.merkle = new MerkleTree.MerkleTree(leaves, this.merkleHashFunc)
     }
 
@@ -55,7 +65,7 @@ class Block {
             this.hash = this.calculateHash();
         }
 
-        console.log("BLOCK MINED: " + this.hash + " " + this.nonce)
+        console.log("BLOCK MINED: " + this.hash + " " + this.nonce);
     }
 }
 

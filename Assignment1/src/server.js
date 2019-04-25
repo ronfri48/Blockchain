@@ -132,9 +132,16 @@ function handleUserData(receiverPeer, message) {
     switch (peerSocket.state) {
         case socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
             const [toAddress, amount] = extractTransactionFromMessage(message);
+
+            if (parseInt(amount) < 0) {
+                peerSocket.socket.write("Error! Can't make a negative transaction.");
+                break;
+            }
+
             const transaction = new Transaction(receiverPeer, toAddress, amount);
-            blockchain.addTransaction(transaction);
-            peerSocket.socket.write("Added Transaction Successfully");
+            const responseMessage = blockchain.addTransaction(transaction);
+            peerSocket.socket.write(responseMessage);
+            sockets[toAddress].socket.write("The transaction you get: " + responseMessage);
             break;
         case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
             const [isValid, svp] = blockchain.findHash(message.toString().trim());
