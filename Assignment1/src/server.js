@@ -128,7 +128,7 @@ function handleUserChoice(message, isSelf) {
 }
 
 function handleUserData(receiverPeer, message) {
-    const peerSocket = sockets[receiverPeer];
+    const peerSocket = sockets[parseInt(receiverPeer)];
     switch (peerSocket.state) {
         case socketStates.NEW_TRANSACTION_DATA_WAITING_FOR_DATA:
             const [toAddress, amount] = extractTransactionFromMessage(message);
@@ -159,15 +159,15 @@ function formatMessage(message) {
 }
 //'127.0.0.1:4000' -> '4000'
 function extractPortFromIp(peer) {
-    return peer.toString().slice(peer.length - 4, peer.length);
+    return peer.toString().slice(peer.indexOf(":") + 1, peer.length)
 }
 //'4000>hello' -> '4000'
 function extractReceiverPeer(message) {
-    return message.slice(0, 4);
+    return message.slice(0, message.indexOf(">"));
 }
 //'4000>hello' -> 'hello'
 function extractMessageToSpecificPeer(message) {
-    return message.slice(5, message.length);
+    return message.slice(message.indexOf(">") + 1, message.length);
 }
 
 function extractPeerAndMessage(message) {
