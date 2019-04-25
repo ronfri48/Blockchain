@@ -55,8 +55,8 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
 // extract ports from process arguments, {me: first_port, peers: rest... }
 function extractPeersAndMyPort() {
     return {
-        me: argv[2],
-        peers: argv.slice(3, argv.length)
+        me: argv[3],
+        peers: argv.slice(4, argv.length)
     }
 }
 
