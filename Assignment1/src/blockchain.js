@@ -74,16 +74,18 @@ class Blockchain {
     }
 
     findHash(transactionHash) {
+        var result = [false, NaN];
         this.chain.forEach(block => {
             if (block.bloomFilter.exists(transactionHash)) {
                 const root = block.merkle.getRoot();
-                const proof = block.merkle.getProof(Buffer.from(transactionHash));
-                return [block.merkle.verify(proof, transactionHash, root), proof];
+                const proof = block.merkle.getProof(transactionHash);
+                if (block.merkle.verify(proof, transactionHash, root)) {
+                    result = [true, proof];
+                }
             }
         });
 
-        console.log("Transaction not found, hash: " + transactionHash);
-        return [false, NaN];
+        return result;
     }
 
     addBlock(newBlock) {
