@@ -137,15 +137,10 @@ function handleUserData(receiverPeer, message) {
                 peerSocket.socket.write("Error! Can't make a negative transaction.");
                 break;
             }
-            if (blockchain.getBalanceOfAddress(receiverPeer) >= amount) {
-                const transaction = new Transaction(receiverPeer, toAddress, amount);
-                const responseMessage = blockchain.addTransaction(transaction);
-                peerSocket.socket.write(responseMessage);
-                sockets[toAddress].socket.write("The transaction you get: " + responseMessage);
-            } else {
-                let responseMessage = receiverPeer.toString() + " dont have enough money";
-                peerSocket.socket.write(responseMessage);
-            }
+            const transaction = new Transaction(receiverPeer, toAddress, amount);
+            const responseMessage = blockchain.addTransaction(transaction);
+            peerSocket.socket.write(responseMessage);
+            sockets[toAddress].socket.write("The transaction you get: " + responseMessage);
             break;
         case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
             const [isValid, svp] = blockchain.findHash(message.toString().trim());
