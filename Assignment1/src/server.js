@@ -178,7 +178,9 @@ function handleUserData(receiverPeer, message) {
             const transaction = new Transaction(receiverPeer, toAddress, amount);
             const responseMessage = blockchain.addTransaction(transaction);
             peerSocket.socket.write(responseMessage);
-            sockets[toAddress].socket.write("The transaction you get: " + responseMessage);
+            if (sockets[toAddress] !== undefined) {
+                sockets[toAddress].socket.write("The transaction you get: " + responseMessage);
+            }
             break;
         case socketStates.WAITING_FOR_TRANSACTION_VALIDATION_DATA:
             // We are waiting for transaction hash for validating it
