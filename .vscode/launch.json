@@ -8,6 +8,6 @@
         "type": "node",
         "request": "launch",
         "program": "${workspaceFolder}\\Assignment1\\src\\server.js",
-        "args": ["${workspaceFolder}\\Assignment1\\resource\\initialBlocks.json", "30001", "30000"]
+        "args": ["${workspaceFolder}\\Assignment1\\resource\\initialBlocks.json", "2019", "2020", "2021"]
     }]
 }

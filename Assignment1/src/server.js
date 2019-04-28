@@ -45,6 +45,19 @@ sockets[me] = new StatedSocket(new ConsoleSocket());
 // Write the main menu to the server as well
 writeToClient(me, consts.MAIN_MESSAGE.toString().trim());
 
+//On server user input
+stdin.on('data', data => {
+    const message = data.toString().trim();
+
+    if ('exit' === message) { //on exit
+        log('Bye bye')
+        exit(0)
+    }
+
+    log('Server User data is: ', message.toString('utf8'));
+    handleUserChoice(message, true);
+});
+
 //connect to peers
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     // Initialzie server-client connection stuff
@@ -58,19 +71,6 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     } catch {
         writeMessageToSocket(socket, consts.MAIN_MESSAGE.toString().trim());
     }
-
-    //On server user input
-    stdin.on('data', data => {
-        const message = data.toString().trim();
-
-        if ('exit' === message) { //on exit
-            log('Bye bye')
-            exit(0)
-        }
-
-        log('Server User data is: ', message.toString('utf8'));
-        handleUserChoice(message, true);
-    })
 
     // On data from clients
     socket.on('data', data => {
@@ -119,14 +119,15 @@ function writeToClient(receiverPeer, message) {
  */
 function handleUserChoice(message, isSelf) {
     // Set the needed vars for handling the communication
-    var [
-        receiverPeer,
-        receiverPeerMessage
-    ] = extractPeerAndMessage(message)
-
+    var receiverPeer, receiverPeerMessage;
     if (isSelf) {
-        receiverPeerMessage = receiverPeer;
+        receiverPeerMessage = message;
         receiverPeer = me;
+    } else {
+        [
+            receiverPeer,
+            receiverPeerMessage
+        ] = extractPeerAndMessage(message);
     }
 
     var peerSocket = sockets[receiverPeer];
