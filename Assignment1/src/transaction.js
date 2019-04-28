@@ -1,4 +1,6 @@
-// My reward is from nothing to my address - The last transaction, so my reward will be in the next block
+/**
+ * This class represnts a transaction from address to address with amount
+ */
 class Transaction {
     constructor(fromAddress, toAddress, amount) {
         this.fromAddress = fromAddress;
@@ -6,6 +8,9 @@ class Transaction {
         this.amount = amount;
     }
 
+    /**
+     * Dump transaction to a stringified json
+     */
     toJson() {
         return "{\"fromAddress\": " + this.fromAddress +
             ", \"toAddress\": " + this.toAddress + ", \"amount\": " + this.amount + "}";

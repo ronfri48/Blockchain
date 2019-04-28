@@ -1,8 +1,11 @@
+// Imports
 const topology = require('fully-connected-topology')
 const {
     StatedSocket,
     SocketStates
 } = require('./stated_socket.js')
+
+// Initial consts
 const {
     stdin,
     exit,
@@ -16,25 +19,29 @@ const {
     peers
 } = extractPeersAndMyPort()
 
-
+// The sockets container
 const sockets = {}
 
+// Start "Command Line GUI" for client
 log('---------------------')
-log('Welcome to p2p blockchain network!, Im  a client.')
+log('Welcome to p2p blockchain network!, Im a client. I love blockchain :)')
 log('me - ', me)
-log('peers - ', peers)
-log('connecting to peers...')
+log('server - ', peers)
+log('connecting to server...')
 
+// Save my ip and peers ip (Can be extended to some servers)
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
 
-//connect to peers
+//connect to server (can be servers)
 topology(myIp, peerIps).on('connection', (socket, peerIp) => {
+    // Initialize me-peer connection stuff.
     const peerPort = extractPortFromIp(peerIp)
     log(peerPort, ' connected to me')
     sockets[peerPort] = new StatedSocket(socket)
 
-    stdin.on('data', data => { //on user input
+    // On user input
+    stdin.on('data', data => {
         const message = data.toString().trim()
 
         if (message === 'exit') { //on exit
@@ -42,17 +49,21 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
             exit(0)
         }
 
+        // Write to server the data I have got from my user
         sockets[peerPort].socket.write(formatMessage(message));
     })
 
-    //print data when received
+    //print data when received for client work with the system
     socket.on('data', data => {
         message = data.toString().trim()
         log(message);
     })
 })
 
-// extract ports from process arguments, {me: first_port, peers: rest... }
+/**
+ * Extract my and peers' ports from the args {me: first_port, peers: rest... }
+ * @returns {string, Array(string)} {my port, peers ports}
+ */
 function extractPeersAndMyPort() {
     return {
         me: argv[3],
@@ -61,20 +72,38 @@ function extractPeersAndMyPort() {
 }
 
 
-//'4000' -> '127.0.0.1:4000'
+/**
+ * Get local ip with port from port, for example: '4000' -> '127.0.0.1:4000'.
+ * @param {number} port The port to Add local ip to.
+ */
 function toLocalIp(port) {
     return '127.0.0.1:' + port
 }
-//['4000', '4001'] -> ['127.0.0.1:4000', '127.0.0.1:4001']
+
+/**
+ * Get local ips with ports from peers ports list, 
+ * for example: ['4000', '4001'] -> ['127.0.0.1:4000', '127.0.0.1:4001']
+ * @param {Array(number)} peers The peers to get the ips of.
+ */
 function getPeerIps(peers) {
     return peers.map(peer => toLocalIp(peer))
 }
-//'hello' -> 'myPort:hello'
+
+/**
+ * Format message to port: message
+ * @param {string} message The message to format.
+ * @returns {string}
+ */
 function formatMessage(message) {
     return me + '>' + message
 }
 
-//'127.0.0.1:4000' -> '4000'
+/**
+ * Extract port from ip+port structure. 
+ * For example: '127.0.0.1:4000' -> '4000'
+ * @param {string} peer The ip+port
+ * @returns {string}
+ */
 function extractPortFromIp(peer) {
     return peer.toString().slice(peer.length - 4, peer.length);
 }

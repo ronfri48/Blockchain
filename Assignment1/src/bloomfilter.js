@@ -1,6 +1,15 @@
+// Imports
+const Consts = require('./consts.js')
+
+// Initial consts
+const consts = new Consts();
+
+/**
+ * This class is the bloomfilter module.
+ */
 class BloomFilter {
     /**
-     * Ctor
+     * Constructor
      * @param {number} size - data size
      */
     constructor(size) {
@@ -11,52 +20,52 @@ class BloomFilter {
 
     /**
      * Add new hashed member to the data
-     * @param {string} memberToAdd - The new string to add
+     * @param {string} hashedMemberToAdd - The new hashed member to add
      */
-    add(memberToAdd) {
-        this.seed.map(mod => this._calculateHash(memberToAdd, this.size, mod))
-            .forEach(index => this._markAsOccupied(index));
+    add(hashedMemberToAdd) {
+        this.seed.map(mod => this.calculateHash(hashedMemberToAdd, this.size, mod))
+            .forEach(index => this.markAsOccupied(index));
     }
 
     /**
-     * Check if member is already in our data
-     * @param {string} member - The member to check if exists
+     * Check if member is already in our bloomfilter's data
+     * @param {string} memberToCheck - The member to check if exists
      */
-    exists(member) {
+    exists(memberToCheck) {
         return this.seed
-            .map(mod => this._calculateHash(member, this.size, mod))
-            .map(index => this._isOccupied(index))
+            .map(mod => this.calculateHash(memberToCheck, this.size, mod))
+            .map(index => this.isOccupied(index))
             .reduce((acc, ele) => acc && ele, true);
     }
 
     /**
-     * Mark index as occupied index.
-     * @param {int} index - The index to mark.
+     * Mark index as already occupied index.
+     * @param {int} index - The index to mark as already occupied index.
      */
-    _markAsOccupied(index) {
-        this.data[index] = 1;
+    markAsOccupied(index) {
+        this.data[index] = consts.ALREADY_OCCUPIED_MARK;
     }
 
     /**
-     * Check if index is occupied.
+     * Check if index is already occupied.
      * @param {int} index - The index to mark.
      */
-    _isOccupied(index) {
-        // If data[index] = 1 -> the index is occupied
-        return !!this.data[index];
+    isOccupied(index) {
+        // If data[index] = consts.ALREADY_OCCUPIED_MARK -> the index is already occupied
+        return consts.ALREADY_OCCUPIED_MARK === this.data[index];
     }
 
     /**
      * Calculate hash of given data.
-     * @param {string} datatoHash - The data to make hash on.
-     * @param {int} size
-     * @param {int} mod - The mod to hash with.
+     * @param {string} data - The data to make hash on.
+     * @param {int} size - The size of the data to hash
+     * @param {int} mod - The mod number to hash the data with.
      */
-    _calculateHash(datatoHash, size, mod) {
-        const hash = datatoHash.split("")
-            .map((ch, i) => (ch.charCodeAt() + mod * 1) * i + 1)
+    calculateHash(data, size, mod) {
+        const dataHash = data.split("")
+            .map((character, index) => (character.charCodeAt() + mod * 1) * index + 1)
             .reduce((acc, ele) => acc + ele);
-        return Math.floor(hash % size);
+        return Math.floor(dataHash % size);
     }
 }
 
